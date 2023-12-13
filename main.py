@@ -1,5 +1,6 @@
 import numpy as np
-import GeneticCurveEstimator, FitnessEvaluator
+from scipy.optimize import curve_fit
+import GeneticCurveEstimator, FitnessEvaluator, Curves
 import matplotlib.pyplot as plt
 
 def create_noisy_ADSR_curve(A, D, S, R, length):
@@ -34,20 +35,43 @@ def create_noisy_ADSR_curve(A, D, S, R, length):
 
     return curve
 
+def create_noisy_exp_curve(A, B, length):
+    """
+    Generates a noisy exp curve.
+
+    Args:
+        A (float): Attack time.
+        B (float): Decay time.
+        length (int): Length of the curve.
+
+    Returns:
+        numpy array: Noisy exp curve.
+    """
+    # Generate exp curve
+    curve = np.zeros(length)
+    t = np.linspace(0, 1, length)
+    curve[0: length] = np.exp(-A*t) * (1 - np.exp(-B * t))
+
+    # Add noise to the curve
+    noise = np.random.normal(0, 0.005, length)
+    curve = curve + noise
+
+    return curve
+
 def main():
     # Generate target curve
-    target_curve = create_noisy_ADSR_curve(np.random.random(), np.random.random(), np.random.random(), np.random.random(), 100)
+    target_curve = create_noisy_exp_curve(10*np.random.random(), 10*np.random.random(), 100)
 
     # Initialize fitness evaluator
     fitness_evaluator = FitnessEvaluator.FitnessEvaluator(
         target_curve=target_curve,
-        curve_type="ADSR",
+        curve_type="exp",
     )
 
     # Initialize genetic curve estimator
     genetic_curve_estimator = GeneticCurveEstimator.GeneticCurveEstimator(
         target_curve=target_curve,
-        curve_type="ADSR",
+        curve_type="exp",
         population_size=100,
         mutation_rate=0.1,
         max_generation=1000,
@@ -55,11 +79,14 @@ def main():
     )
 
     # Generate curve parameters
-    curve_param = genetic_curve_estimator.generate(generations=1000)
+    # curve_param = genetic_curve_estimator.generate(generations=1000)
+    # fit curve
+    opt, _ = curve_fit(Curves.exp, np.linspace(0,1,len(target_curve)) , target_curve)
+    curve_param = opt
 
     # Generate curve
-    curve = fitness_evaluator.generate_ADSR(
-        curve_param[0], curve_param[1], curve_param[2], curve_param[3], 100
+    curve = fitness_evaluator.generate_exp(
+        curve_param[0], curve_param[1], 100
     )
 
     # Plot target curve and generated curve
