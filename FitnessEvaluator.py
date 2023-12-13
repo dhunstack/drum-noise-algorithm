@@ -46,8 +46,42 @@ class FitnessEvaluator:
         """
         if self.curve_type == "ADSR":
             return self.evaluate_ADSR_curve(curve_param)
+        elif self.curve_type == "exp":
+            return self.evaluate_exp_curve(curve_param)
         else:
             raise ValueError("Invalid curve type.")
+        
+    def evaluate_exp_curve(self, curve_param): 
+        """
+            Evaluates the fitness of exp curve fit to the target curve.
+            Args:
+                curve_param (numpy array): Curve parameter.
+            
+            Returns:
+                float: Fitness of the curve.
+        """
+
+        curve = self.generate_exp(curve_param[0], curve_param[1], self.length)
+        fitness = -np.square(curve - self.target_curve).mean()
+
+        return fitness
+    
+    def generate_exp(self, A, B, length):
+        """
+            Generates an exp curve given A, B, and the length of the curve.
+
+            Args:
+                A (float): Attack time.
+                B (float): Decay time.
+                length (int): Length of the curve.
+
+            Returns:
+                numpy array: exp curve.
+        """
+        curve = np.zeros(length)
+        t = np.linspace(0, 1, length)
+        curve[0: length] = np.exp(-A*t) * (1 - np.exp(-B * t))
+        return curve
 
     def evaluate_ADSR_curve(self, curve_param):
         """

@@ -1,4 +1,5 @@
 import random
+import numpy as np
 
 class GeneticCurveEstimator:
     """
@@ -73,6 +74,8 @@ class GeneticCurveEstimator:
         """
         if self.curve_type == "ADSR":
             return self._get_random_ADSR_curve_param()
+        elif self.curve_type == "exp":
+            return self._get_random_exp_curve_param()
         else:
             raise ValueError("Invalid curve type.")
         
@@ -88,6 +91,18 @@ class GeneticCurveEstimator:
             random.uniform(0, 1),
             random.uniform(0, 1),
             random.uniform(0, 1),
+        ]
+    
+    def _get_random_exp_curve_param(self):
+        """
+        Returns random curve parameter for ADSR curve.
+
+        Returns:
+            numpy array: Curve parameter.
+        """
+        return [
+            10*np.random.random(), 
+            10*np.random.random(),
         ]
 
     def _select_parents(self):
