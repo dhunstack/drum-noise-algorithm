@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import curve_fit
-import GeneticCurveEstimator, FitnessEvaluator, Curves
+import GeneticCurveEstimator, FitnessEvaluator, Curves, Parser
 import matplotlib.pyplot as plt
 
 def create_noisy_ADSR_curve(A, D, S, R, length):
