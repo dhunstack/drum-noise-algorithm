@@ -58,9 +58,37 @@ def create_noisy_exp_curve(A, B, length):
 
     return curve
 
+def create_noisy_exprel_curve(A, B, C, length):
+    """
+    Generates a noisy exprel curve.
+
+    Args:
+        A (float): Attack time.
+        B (float): Decay time.
+        C (float): Release time.
+        length (int): Length of the curve.
+
+    """
+    # Generate exp curve
+    curve = np.zeros(length)
+    t = np.linspace(0, 1, length)
+    relT = int(C*length)
+    curve[0: relT] = np.exp(-A*t[0:relT]) * (1 - np.exp(-B * t[0:relT]))
+    curve[relT: length] = np.exp(-A*relT) * (1 - np.exp(-B * relT)) * np.exp(-(t[relT:length]-relT))
+    
+
+    # Add noise to the curve
+    noise = np.random.normal(0, 0.005, length)
+    curve = curve + noise
+
+    return curve
+
 def main():
     # Generate target curve
-    target_curve = create_noisy_exp_curve(10*np.random.random(), 10*np.random.random(), 100)
+    a = 10*np.random.random()
+    b = 10*np.random.random()
+    c = np.random.random()
+    target_curve = create_noisy_exprel_curve(a, b, c, 100)
 
     # Initialize fitness evaluator
     fitness_evaluator = FitnessEvaluator.FitnessEvaluator(
@@ -81,12 +109,14 @@ def main():
     # Generate curve parameters
     # curve_param = genetic_curve_estimator.generate(generations=1000)
     # fit curve
-    opt, _ = curve_fit(Curves.exp, np.linspace(0,1,len(target_curve)) , target_curve)
+    opt, _ = curve_fit(Curves.exprel, np.linspace(0,1,len(target_curve)) , target_curve)
     curve_param = opt
+    print(a, b, c)
+    print(opt)
 
     # Generate curve
-    curve = fitness_evaluator.generate_exp(
-        curve_param[0], curve_param[1], 100
+    curve = fitness_evaluator.generate_exprel(
+        curve_param[0], curve_param[1], curve_param[2], 100
     )
 
     # Plot target curve and generated curve

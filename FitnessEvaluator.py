@@ -50,7 +50,7 @@ class FitnessEvaluator:
             return self.evaluate_exp_curve(curve_param)
         else:
             raise ValueError("Invalid curve type.")
-        
+    
     def evaluate_exp_curve(self, curve_param): 
         """
             Evaluates the fitness of exp curve fit to the target curve.
@@ -81,6 +81,41 @@ class FitnessEvaluator:
         curve = np.zeros(length)
         t = np.linspace(0, 1, length)
         curve[0: length] = np.exp(-A*t) * (1 - np.exp(-B * t))
+        return curve
+    
+    def evaluate_exprel_curve(self, curve_param): 
+        """
+            Evaluates the fitness of exprel curve fit to the target curve.
+            Args:
+                curve_param (numpy array): Curve parameter.
+            
+            Returns:
+                float: Fitness of the curve.
+        """
+
+        curve = self.generate_exprel(curve_param[0], curve_param[1], curve_param[2], self.length)
+        fitness = -np.square(curve - self.target_curve).mean()
+
+        return fitness
+    
+    def generate_exprel(self, A, B, C,  length):
+        """
+        Generates a noisy exprel curve.
+
+        Args:
+            A (float): Attack time.
+            B (float): Decay time.
+            C (float): Release time.
+            length (int): Length of the curve.
+
+        """
+        # Generate exp curve
+        curve = np.zeros(length)
+        t = np.linspace(0, 1, length)
+        relT = int(C*length)
+        curve[0: relT] = np.exp(-A*t[0:relT]) * (1 - np.exp(-B * t[0:relT]))
+        curve[relT: length] = np.exp(-A*relT) * (1 - np.exp(-B * relT)) * np.exp(-(t[relT:length]-relT))
+
         return curve
 
     def evaluate_ADSR_curve(self, curve_param):
